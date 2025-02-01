@@ -1,14 +1,9 @@
-#!/usr/bin/env npx ts-node
+#!/usr/bin/env npx tsx
 
 import { add, complete, cycle, save, suite } from 'benny'
-import { atom } from '../src/core/atom'
-import type { PrimitiveAtom } from '../src/core/atom'
-import {
-  READ_ATOM,
-  SUBSCRIBE_ATOM,
-  WRITE_ATOM,
-  createStore,
-} from '../src/core/store'
+import { atom } from '../src/vanilla/atom.ts'
+import type { PrimitiveAtom } from '../src/vanilla/atom.ts'
+import { createStore } from '../src/vanilla/store.ts'
 
 const cleanupFns = new Set<() => void>()
 const cleanup = () => {
@@ -24,9 +19,9 @@ const createStateWithAtoms = (n: number) => {
     if (!targetAtom) {
       targetAtom = a
     }
-    store[READ_ATOM](a)
-    const unsub = store[SUBSCRIBE_ATOM](a, () => {
-      store[READ_ATOM](a)
+    store.get(a)
+    const unsub = store.sub(a, () => {
+      store.get(a)
     })
     cleanupFns.add(unsub)
   }
@@ -37,28 +32,28 @@ const createStateWithAtoms = (n: number) => {
 }
 
 const main = async () => {
-  for (const n of [2, 3, 4, 5, 6]) {
-    await suite(
-      `subscribe-write-${n}`,
+  await suite(
+    'subscribe-write',
+    ...[2, 3, 4, 5, 6].map((n) =>
       add(`atoms=${10 ** n}`, () => {
         cleanup()
         const [store, targetAtom] = createStateWithAtoms(10 ** n)
-        return () => store[WRITE_ATOM](targetAtom, (c) => c + 1)
+        return () => store.set(targetAtom, (c) => c + 1)
       }),
-      cycle(),
-      complete(),
-      save({
-        folder: __dirname,
-        file: `subscribe-write-${n}`,
-        format: 'json',
-      }),
-      save({
-        folder: __dirname,
-        file: `subscribe-write-${n}`,
-        format: 'chart.html',
-      })
-    )
-  }
+    ),
+    cycle(),
+    complete(),
+    save({
+      folder: __dirname,
+      file: 'subscribe-write',
+      format: 'json',
+    }),
+    save({
+      folder: __dirname,
+      file: 'subscribe-write',
+      format: 'chart.html',
+    }),
+  )
 }
 
 main()

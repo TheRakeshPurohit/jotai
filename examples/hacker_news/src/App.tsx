@@ -1,8 +1,7 @@
 import { Suspense } from 'react'
 import { a, useSpring } from '@react-spring/web'
 import Parser from 'html-react-parser'
-import { Provider, atom, useAtom } from 'jotai'
-import { useUpdateAtom } from 'jotai/utils'
+import { Provider, atom, useAtom, useSetAtom } from 'jotai'
 
 type PostData = {
   by: string
@@ -19,12 +18,13 @@ type PostData = {
 }
 
 const postId = atom(9001)
-const postData = atom<PostData>(async (get) => {
+const postData = atom(async (get) => {
   const id = get(postId)
   const response = await fetch(
-    `https://hacker-news.firebaseio.com/v0/item/${id}.json`
+    `https://hacker-news.firebaseio.com/v0/item/${id}.json`,
   )
-  return await response.json()
+  const data: PostData = await response.json()
+  return data
 })
 
 function Id() {
@@ -34,9 +34,9 @@ function Id() {
 }
 
 function Next() {
-  // Use `useUpdateAtom` to avoid re-render
-  // const [, set] = useAtom(postId)
-  const setPostId = useUpdateAtom(postId)
+  // Use `useSetAtom` to avoid re-render
+  // const [, setPostId] = useAtom(postId)
+  const setPostId = useSetAtom(postId)
   return (
     <button onClick={() => setPostId((id) => id + 1)}>
       <div>→</div>

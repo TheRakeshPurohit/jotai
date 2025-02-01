@@ -1,8 +1,16 @@
 import babel from '@babel/core'
-import pluginDebugLabel from './plugin-debug-label'
+import pluginDebugLabel from './plugin-debug-label.ts'
+import pluginReactRefresh from './plugin-react-refresh.ts'
+import type { PluginOptions } from './utils.ts'
 
-export default function jotaiPreset(): { plugins: babel.PluginItem[] } {
+export default function jotaiPreset(
+  _: typeof babel,
+  options?: PluginOptions,
+): { plugins: babel.PluginItem[] } {
   return {
-    plugins: [pluginDebugLabel],
+    plugins: [
+      [pluginDebugLabel, options],
+      [pluginReactRefresh, options],
+    ],
   }
 }

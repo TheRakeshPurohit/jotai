@@ -2,15 +2,15 @@ import type { FormEvent } from 'react'
 import { CloseOutlined } from '@ant-design/icons'
 import { a, useTransition } from '@react-spring/web'
 import { Radio } from 'antd'
-import { Provider, atom, useAtom } from 'jotai'
-import { atomFamily, useUpdateAtom } from 'jotai/utils'
+import { Provider, atom, useAtom, useSetAtom } from 'jotai'
+import { atomFamily } from 'jotai/utils'
 import { nanoid } from 'nanoid'
 
 type Param = { id: string; title?: string }
 const todoAtomFamily = atomFamily(
   (param: Param) =>
     atom({ title: param.title || 'No title', completed: false }),
-  (a: Param, b: Param) => a.id === b.id
+  (a: Param, b: Param) => a.id === b.id,
 )
 
 const filterAtom = atom('all')
@@ -75,9 +75,9 @@ const Filtered = ({ remove }: { remove: (id: string) => void }) => {
 }
 
 const TodoList = () => {
-  // Use `useUpdateAtom` to avoid re-render
+  // Use `useSetAtom` to avoid re-render
   // const [, setTodos] = useAtom(todosAtom)
-  const setTodos = useUpdateAtom(todosAtom)
+  const setTodos = useSetAtom(todosAtom)
   const remove = (id: string) => {
     setTodos((prev) => prev.filter((item) => item !== id))
     todoAtomFamily.remove({ id })
@@ -99,11 +99,11 @@ const TodoList = () => {
   )
 }
 
-const serializeAtom = atom<
-  null,
+type Action =
   | { type: 'serialize'; callback: (value: string) => void }
   | { type: 'deserialize'; value: string }
->(null, (get, set, action) => {
+
+const serializeAtom = atom(null, (get, set, action: Action) => {
   if (action.type === 'serialize') {
     const todos = get(todosAtom)
     const todoMap: Record<string, { title: string; completed: boolean }> = {}

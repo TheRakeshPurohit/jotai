@@ -1,9 +1,16 @@
-import React from 'react'
+import cx from 'classnames';
 
-export const InlineCode = ({ children }) => {
+export const InlineCode = ({ dark = false, children }) => {
   return (
-    <code className="px-2 py-1 bg-gray-100 rounded text-sm text-gray-800">
+    <code
+      className={cx(
+        'relative -top-px rounded px-1 py-0.5 text-sm lg:text-base',
+        !dark
+          ? 'bg-gray-100 text-black dark:bg-gray-800 dark:text-gray-300'
+          : 'bg-gray-200 text-black dark:bg-gray-700 dark:text-gray-200',
+      )}
+    >
       {children}
     </code>
-  )
-}
+  );
+};
