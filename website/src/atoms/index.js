@@ -1,13 +1,12 @@
-import { atom } from 'jotai'
-import { atomWithStorage } from 'jotai/utils'
-import { atomWithImmer } from 'jotai/immer'
+/* eslint-disable import/extensions */
+import { atom } from 'jotai';
+import { atomWithStorage } from 'jotai/utils';
+import { atomWithImmer } from 'jotai-immer';
 
-// Core demo state
-export const textAtom = atom('hello')
-export const uppercaseAtom = atom((get) => get(textAtom).toUpperCase())
-
-// Utilities demo state
-export const darkModeAtom = atomWithStorage('darkMode', false)
-
-// Integrations demo state
-export const countAtom = atomWithImmer(0)
+export const menuAtom = atom(false);
+export const searchAtom = atom(false);
+export const helpAtom = atom(false);
+export const textAtom = atom('hello');
+export const uppercaseAtom = atom((get) => get(textAtom).toUpperCase());
+export const darkModeAtom = atomWithStorage('darkMode', false);
+export const countAtom = atomWithImmer(0);

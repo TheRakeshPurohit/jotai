@@ -1,25 +1,31 @@
-import path from 'path'
-import babel, { PluginObj, types } from '@babel/core'
-import templateBuilder from '@babel/template'
+import babel from '@babel/core'
+import type { PluginObj } from '@babel/core'
+import _templateBuilder from '@babel/template'
+import { isAtom } from './utils.ts'
+import type { PluginOptions } from './utils.ts'
 
-export default function debugLabelPlugin({
-  types: t,
-}: typeof babel): PluginObj {
+const templateBuilder = (_templateBuilder as any).default || _templateBuilder
+
+export default function debugLabelPlugin(
+  { types: t }: typeof babel,
+  options?: PluginOptions,
+): PluginObj {
   return {
     visitor: {
       ExportDefaultDeclaration(nodePath, state) {
         const { node } = nodePath
         if (
           t.isCallExpression(node.declaration) &&
-          isAtom(t, node.declaration.callee)
+          isAtom(t, node.declaration.callee, options?.customAtomNames)
         ) {
-          const filename = state.filename || 'unknown'
+          const filename = (state.filename || 'unknown').replace(/\.\w+$/, '')
 
-          let displayName = path.basename(filename, path.extname(filename))
+          let displayName = filename.split('/').pop()!
 
           // ./{module name}/index.js
           if (displayName === 'index') {
-            displayName = path.basename(path.dirname(filename))
+            displayName =
+              filename.slice(0, -'/index'.length).split('/').pop() || 'unknown'
           }
           // Relies on visiting the variable declaration to add the debugLabel
           const buildExport = templateBuilder(`
@@ -37,7 +43,7 @@ export default function debugLabelPlugin({
         if (
           t.isIdentifier(path.node.id) &&
           t.isCallExpression(path.node.init) &&
-          isAtom(t, path.node.init.callee)
+          isAtom(t, path.node.init.callee, options?.customAtomNames)
         ) {
           path.parentPath.insertAfter(
             t.expressionStatement(
@@ -45,31 +51,14 @@ export default function debugLabelPlugin({
                 '=',
                 t.memberExpression(
                   t.identifier(path.node.id.name),
-                  t.identifier('debugLabel')
+                  t.identifier('debugLabel'),
                 ),
-                t.stringLiteral(path.node.id.name)
-              )
-            )
+                t.stringLiteral(path.node.id.name),
+              ),
+            ),
           )
         }
       },
     },
   }
-}
-
-function isAtom(
-  t: typeof types,
-  callee: babel.types.Expression | babel.types.V8IntrinsicIdentifier
-) {
-  if (t.isIdentifier(callee) && callee.name === 'atom') {
-    return true
-  }
-
-  if (t.isMemberExpression(callee)) {
-    const { property } = callee
-    if (t.isIdentifier(property) && property.name === 'atom') {
-      return true
-    }
-  }
-  return false
 }

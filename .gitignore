@@ -6,6 +6,10 @@ node_modules
 # testing
 coverage
 
+# development
+.devcontainer
+.vscode
+
 # production
 dist
 build
@@ -25,3 +29,9 @@ yarn-error.log*
 # misc
 .DS_Store
 .idea
+
+# examples
+examples/**/*/package-lock.json
+examples/**/*/yarn.lock
+examples/**/*/pnpm-lock.yaml
+examples/**/*/bun.lockb

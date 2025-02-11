@@ -1,21 +1,20 @@
-#!/usr/bin/env npx ts-node
+#!/usr/bin/env npx tsx
 
 import { add, complete, cycle, save, suite } from 'benny'
-import { atom } from '../src/core/atom'
-import type { PrimitiveAtom } from '../src/core/atom'
-import { WRITE_ATOM, createStore } from '../src/core/store'
+import { atom } from '../src/vanilla/atom.ts'
+import type { PrimitiveAtom } from '../src/vanilla/atom.ts'
+import { createStore } from '../src/vanilla/store.ts'
 
 const createStateWithAtoms = (n: number) => {
   let targetAtom: PrimitiveAtom<number> | undefined
-  const initialValues = new Map()
+  const store = createStore()
   for (let i = 0; i < n; ++i) {
     const a = atom(i)
     if (!targetAtom) {
       targetAtom = a
     }
-    initialValues.set(a, i)
+    store.set(a, i)
   }
-  const store = createStore(initialValues)
   if (!targetAtom) {
     throw new Error()
   }
@@ -23,27 +22,27 @@ const createStateWithAtoms = (n: number) => {
 }
 
 const main = async () => {
-  for (const n of [2, 3, 4, 5, 6]) {
-    await suite(
-      `simple-write-${n}`,
+  await suite(
+    'simple-write',
+    ...[2, 3, 4, 5, 6].map((n) =>
       add(`atoms=${10 ** n}`, () => {
         const [store, targetAtom] = createStateWithAtoms(10 ** n)
-        return () => store[WRITE_ATOM](targetAtom, (c) => c + 1)
+        return () => store.set(targetAtom, (c) => c + 1)
       }),
-      cycle(),
-      complete(),
-      save({
-        folder: __dirname,
-        file: `simple-write-${n}`,
-        format: 'json',
-      }),
-      save({
-        folder: __dirname,
-        file: `simple-write-${n}`,
-        format: 'chart.html',
-      })
-    )
-  }
+    ),
+    cycle(),
+    complete(),
+    save({
+      folder: __dirname,
+      file: 'simple-write',
+      format: 'json',
+    }),
+    save({
+      folder: __dirname,
+      file: 'simple-write',
+      format: 'chart.html',
+    }),
+  )
 }
 
 main()
